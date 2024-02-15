@@ -1,34 +1,56 @@
 package ru.andrey.springSecurity.config;
 
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.andrey.springSecurity.security.AuthProviderImpl;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import ru.andrey.springSecurity.services.PersonDetailsService;
 
+@Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfiguration {
+@EnableWebMvc
+public class SecurityConfig {
 
     //    private final AuthProviderImpl authProvider;
     private final PersonDetailsService personDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public SecurityConfig(PersonDetailsService personDetailsService) {
+    public SecurityConfig(PersonDetailsService personDetailsService, PasswordEncoder passwordEncoder) {
         this.personDetailsService = personDetailsService;
-    }
-
-    //Настраивает аутенфикацию
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    //    auth.authenticationProvider(authProvider);
-        auth.userDetailsService(personDetailsService); //TODO
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Bean
-    public PasswordEncoder getPassword() {
-        return NoOpPasswordEncoder.getInstance();
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf().disable().authorizeHttpRequests(customizer ->
+                customizer
+                        .requestMatchers("/hello").authenticated()
+                        .requestMatchers("/auth/registration").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+        ).formLogin(form -> form
+                .loginPage("/auth/login").permitAll()
+                .loginProcessingUrl("/process_login")
+                .defaultSuccessUrl("/hello", true));
+
+        return http.build();
     }
+
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setUserDetailsService(personDetailsService);
+        return provider;
+    }
+
+
 }

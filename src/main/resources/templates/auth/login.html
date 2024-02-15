@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+
+<form th:method="POST" name="f" action="/process_login">
+    <label for="username">Enter user name</label>
+    <input type="text" name="username" id="username"/>
+    <br/>
+    <label for="password">Enter password</label>
+    <input type="password" name="password" id="password"/>
+    <input type="submit" value="Login!"/>
+
+    <div th:if="${param.error}" style="color: red">
+        Wrong name or password
+    </div>
+</form>
+
+</body>
+</html>
