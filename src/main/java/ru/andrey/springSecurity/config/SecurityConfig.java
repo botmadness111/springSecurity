@@ -1,6 +1,5 @@
 package ru.andrey.springSecurity.config;
 
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +17,6 @@ import ru.andrey.springSecurity.services.PersonDetailsService;
 @EnableWebMvc
 public class SecurityConfig {
 
-    //    private final AuthProviderImpl authProvider;
     private final PersonDetailsService personDetailsService;
     private final PasswordEncoder passwordEncoder;
 
@@ -30,7 +28,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable().authorizeHttpRequests(customizer ->
+        http.authorizeHttpRequests(customizer ->
                 customizer
                         .requestMatchers("/hello").authenticated()
                         .requestMatchers("/auth/registration").permitAll()
