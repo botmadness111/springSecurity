@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,7 +16,7 @@ import ru.andrey.springSecurity.services.PersonDetailsService;
 
 @Configuration
 @EnableWebSecurity
-@EnableWebMvc
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final PersonDetailsService personDetailsService;
@@ -30,10 +32,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(customizer ->
                 customizer
-                        .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/hello").authenticated()
                         .requestMatchers("/auth/registration").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .anyRequest().hasAnyRole("USER", "ADMIN")
         ).formLogin(form -> form
                 .loginPage("/auth/login").permitAll()
                 .loginProcessingUrl("/process_login")
